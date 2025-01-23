@@ -4,6 +4,7 @@ local Silk = require(ReplicatedStorage.Shared.Silk.Silk)
 export type Tranform = {
     Position : Vector3,
     Rotation : Vector3,
+    Rotation2 : Vector3
 }
 
 export type Physics = {
@@ -14,7 +15,8 @@ export type Physics = {
 
 local Tranform : Tranform = {
     Position = Vector3.zero,
-    Rotation = Vector3.zero
+    Rotation = Vector3.zero,
+    Rotation2 = vector.zero,
 }
 
 local Physics : Physics = {
@@ -23,7 +25,8 @@ local Physics : Physics = {
     Force = Vector3.zero,
 }
 
-debug.setmemorycategory("$ TEST")
+debug.setmemorycategory("$ Components")
+
 local StartTime = os.clock()
 
 Silk.Component("Tranform", Tranform)
@@ -36,27 +39,37 @@ Silk.Component("Physics5", Physics)
 Silk.Component("Physics6", Physics)
 Silk.Component("Physics7", Physics)
 Silk.Component("Physics8", Physics)
-Silk.Component("Physics9", Physics)
+
+print("Created 10 Components In: ", os.clock() - StartTime)
+
+local StartTime2 = os.clock()
+
+debug.setmemorycategory("$ World")
 
 local World = Silk.World("Test-World")
 
-local Entities = {}
+print("Created World In: ", os.clock() - StartTime2)
+
+debug.setmemorycategory("$ Entities")
+
+local StartTime3 = os.clock()
 
 for i = 1, 10000 do
-    Entities[i] = World:Entity()
-    World:Attach(Entities[i], "Tranform")
-    World:Attach(Entities[i], "Physics")
-    World:Attach(Entities[i], "Physics1")
-    World:Attach(Entities[i], "Physics2")
-    World:Attach(Entities[i], "Physics3")
-    World:Attach(Entities[i], "Physics4")
-    World:Attach(Entities[i], "Physics5")
-    World:Attach(Entities[i], "Physics6")
-    World:Attach(Entities[i], "Physics7")
-    World:Attach(Entities[i], "Physics8")
-    World:Attach(Entities[i], "Physics9")
+	local Entity = World:Entity()
+	World:Attach(Entity, "Tranform")
+	World:Attach(Entity, "Physics")
+	World:Attach(Entity, "Physics1")
+	World:Attach(Entity, "Physics2")
+	World:Attach(Entity, "Physics3")
+	World:Attach(Entity, "Physics4")
+	World:Attach(Entity, "Physics5")
+	World:Attach(Entity, "Physics6")
+	World:Attach(Entity, "Physics7")
+	World:Attach(Entity, "Physics8")
 end
 
-print("Created 10k Entities With 10 Components In:", os.clock() - StartTime)
+print("Created 10,000 Entities In: ", os.clock() - StartTime3)
+
+print("Benchmark Done In: ", os.clock() - StartTime)
 
 
