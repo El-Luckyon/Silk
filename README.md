@@ -11,7 +11,7 @@ Ryzen 5 5500
 
 10k Entities
 
-11 Classes (3 Vector3s each)
+10 Classes (3 Vector3s each)
 
 
 ## Results:
