@@ -18,6 +18,7 @@ function Entity.New(Id)
     self.Id = Id
     self.Components = {}
     setmetatable(self, Entity)
+    return self
 end
 
 function Entity:HasComponent(ComponentId)
