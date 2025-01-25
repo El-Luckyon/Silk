@@ -74,13 +74,19 @@ print("Created 10,000 Entities In: ", os.clock() - StartTime3)
 
 print("Benchmark Done In: ", os.clock() - StartTime)
 
+print(World.EntityIdToIndex[1])
 task.wait(10)
 
 local StartTime = os.clock()
 
-for i = 1, 5000 do
+for i = 1, 9999 do
 	World:Kill(i)
 end
 
 print(World)
 print("Killed 10,000 Entities In: ", os.clock() - StartTime)
+
+task.wait(5)
+
+World:Kill(10000)
+print(World)

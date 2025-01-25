@@ -57,7 +57,7 @@ function World:Attach(EntityId, ComponentName)
 
     if not self.Collection[ComponentId] then
         self.Collection[ComponentId] = {}
-        self.EntityIdToIndex[ComponentId] = {}
+        self.EntityIdToIndex[ComponentId] = {t = true}
     end
 
     table.insert(self.Collection[ComponentId], table.clone(Component[1]))
@@ -82,22 +82,28 @@ function World:Detach(EntityId, ComponentName)
     local Index = EntityIdToIndex[EntityId]
 
     if not Index then
-         return
+        return
     end
 
     local LastIndex = #Collection
-    local LastEntityId = EntityIdFromIndex(EntityIdToIndex, LastIndex)
 
-    self.Collection[ComponentId][Index] = Collection[LastIndex]
-    self.Collection[ComponentId][LastIndex] = nil
-
-    self.EntityIdToIndex[ComponentId][EntityId] = nil
-    self.EntityIdToIndex[ComponentId][LastEntityId] = Index
-
-    if #self.Collection == 0 then
+    if LastIndex == 1 then
         self.Collection[ComponentId] = nil
         self.EntityIdToIndex[ComponentId] = nil
         return
+    end
+    
+    if Index == LastIndex then
+        self.Collection[ComponentId][LastIndex] = nil
+        self.EntityIdToIndex[ComponentId][EntityId] = nil
+    else
+        local LastEntityId = EntityIdFromIndex(EntityIdToIndex, LastIndex)
+        
+        self.Collection[ComponentId][Index] = Collection[LastIndex]
+        self.EntityIdToIndex[ComponentId][LastEntityId] = Index
+      
+        self.EntityIdToIndex[ComponentId][EntityId] = nil
+        self.Collection[ComponentId][LastIndex] = nil
     end
 end
 
