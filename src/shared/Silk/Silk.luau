@@ -1,6 +1,5 @@
 local Folder = script.Parent
 local WorldClass = require(Folder.World)
-local ComponentClass = require(Folder.Component)
 
 local Silk = {}
 
@@ -32,9 +31,8 @@ function Silk.Component<Type>(Name : string, DataTemplate : Type)
     end
 
     ComponentCount += 1
-    Component = ComponentClass.New(DataTemplate, Name)
-    Components[Name] = {Component, ComponentCount}
-    
+    Components[Name] = {DataTemplate, ComponentCount}
+
     return ComponentCount
 end
 

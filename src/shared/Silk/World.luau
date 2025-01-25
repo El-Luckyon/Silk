@@ -1,28 +1,41 @@
 local Folder = script.Parent
 
-local EntityClass = require(Folder.Entity)
-local ComponentClass = require(Folder.Component)
-local Components : {[string] : {["1"] : ComponentClass.Component<any>, ["2"] : number}} = require(Folder.Components)
+local Components : {[string] : {["1"] : {any}, ["2"] : number}} = require(Folder.Components)
 
 export type World = {
     New : (WorldId : string) -> World,
     Id : string,
     Archetypes : {},
-    Entities : {EntityClass.Entity},
+    Entities : {[number] : boolean},
     Systems : {},
+    Collection : {[number] : {any}},
+    EntityIdToIndex : {[number] : number},
     LastEntityId : number,
     Entity : (World) -> number,
-    Attach : (World, EntityId : number, Component : string) -> ()
+    Attach : (World, EntityId : number, Component : string) -> (),
+    Detach : (World, EntityId : number, Component : string) -> (),
+    Build : (World, EntityId : number, ...string) -> (),
+    Kill : (World, EntityId : number) -> (),
 }
 
 local World = {} :: World
 World.__index = World
+
+local function EntityIdFromIndex(EntityIdToIndex, IndexToFind)
+    for EntityId, Index in EntityIdToIndex do
+        if Index == IndexToFind then
+            return EntityId
+        end
+    end
+end
 
 function  World.New(WorldId)
     local self = {
         Id = WorldId,
         Archetypes = {},
         Entities = {},
+        Collection = {},
+        EntityIdToIndex = {},
         Systems = {},
         LastEntityId = 0,
     }
@@ -34,16 +47,65 @@ end
 function World:Entity()
     self.LastEntityId += 1
     local NewEntityId = self.LastEntityId
-    local Entity = EntityClass.New(NewEntityId)
-    self.Entities[NewEntityId] = Entity
+    self.Entities[NewEntityId] = true
     return NewEntityId
 end
 
-function World:Attach(EntityId, ComponentId)
-    local Entity = self.Entities[EntityId]
-    local Component = Components[ComponentId]
-    Component[1]:AddEntity(EntityId)
-    Entity:AddComponent(Component[2])
+function World:Attach(EntityId, ComponentName)
+    local Component = Components[ComponentName]
+    local ComponentId = Component[2]
+
+    if not self.Collection[ComponentId] then
+        self.Collection[ComponentId] = {}
+        self.EntityIdToIndex[ComponentId] = {}
+    end
+
+    table.insert(self.Collection[ComponentId], table.clone(Component[1]))
+    local Index = #self.Collection[ComponentId]
+    self.EntityIdToIndex[ComponentId][EntityId] = Index
+end
+
+function World:Build(EntityId, ...)
+    local Components = {...}
+    for i, Component in Components do
+        self:Attach(EntityId, Component)
+    end
+end
+
+function World:Detach(EntityId, ComponentName)
+    local Component = Components[ComponentName]
+    local ComponentId = Component[2]
+
+    local Collection = self.Collection[ComponentId]
+    local EntityIdToIndex = self.EntityIdToIndex[ComponentId]
+
+    local Index = EntityIdToIndex[EntityId]
+
+    if not Index then
+         return
+    end
+
+    local LastIndex = #Collection
+    local LastEntityId = EntityIdFromIndex(EntityIdToIndex, LastIndex)
+
+    self.Collection[ComponentId][Index] = Collection[LastIndex]
+    self.Collection[ComponentId][LastIndex] = nil
+
+    self.EntityIdToIndex[ComponentId][EntityId] = nil
+    self.EntityIdToIndex[ComponentId][LastEntityId] = Index
+
+    if #self.Collection == 0 then
+        self.Collection[ComponentId] = nil
+        self.EntityIdToIndex[ComponentId] = nil
+        return
+    end
+end
+
+function World:Kill(EntityId)
+    for ComponentName in Components do
+        self:Detach(EntityId, ComponentName)
+    end
+    self.Entities[EntityId] = nil
 end
 
 function World:System()

@@ -16,7 +16,7 @@ export type Physics = {
 local Tranform : Tranform = {
     Position = Vector3.zero,
     Rotation = Vector3.zero,
-    Rotation2 = vector.zero,
+    Rotation2 = Vector3.zero,
 }
 
 local Physics : Physics = {
@@ -56,20 +56,31 @@ local StartTime3 = os.clock()
 
 for i = 1, 10000 do
 	local Entity = World:Entity()
-	World:Attach(Entity, "Tranform")
-	World:Attach(Entity, "Physics")
-	World:Attach(Entity, "Physics1")
-	World:Attach(Entity, "Physics2")
-	World:Attach(Entity, "Physics3")
-	World:Attach(Entity, "Physics4")
-	World:Attach(Entity, "Physics5")
-	World:Attach(Entity, "Physics6")
-	World:Attach(Entity, "Physics7")
-	World:Attach(Entity, "Physics8")
+    World:Build(Entity, 
+        "Tranform",
+        "Physics",
+        "Physics1",
+        "Physics2",
+        "Physics3",
+        "Physics4",
+        "Physics5",
+        "Physics6",
+        "Physics7",
+        "Physics8"
+    )
 end
 
 print("Created 10,000 Entities In: ", os.clock() - StartTime3)
 
 print("Benchmark Done In: ", os.clock() - StartTime)
 
+task.wait(10)
 
+local StartTime = os.clock()
+
+for i = 1, 5000 do
+	World:Kill(i)
+end
+
+print(World)
+print("Killed 10,000 Entities In: ", os.clock() - StartTime)
