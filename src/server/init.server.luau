@@ -7,10 +7,17 @@ export type Tranform = {
     Rotation2 : Vector3
 }
 
-export type Physics = {
-    Acclertation : Vector3,
-    Velocity : Vector3,
-    Force : Vector3,
+export type Health = {
+    Health : number,
+    RegenRate : number,
+}
+
+export type Movement = {
+    WalkSpeed : number,
+    JumpHeight : number,
+    SwimSpeed : number,
+    SprintMultiplier : number,
+    CrouchMultiplier : number,
 }
 
 local Tranform : Tranform = {
@@ -19,74 +26,37 @@ local Tranform : Tranform = {
     Rotation2 = Vector3.zero,
 }
 
-local Physics : Physics = {
-    Acclertation = Vector3.zero,
-    Velocity = Vector3.zero,
-    Force = Vector3.zero,
+local Health : Health = {
+    Health = 100,
+    RegenRate = 2,
 }
 
-debug.setmemorycategory("$ Components")
+local Movement : Movement = {
+    WalkSpeed = 16,
+    JumpHeight = 7.2,
+    SwimSpeed = 10,
+    SprintMultiplier = 1.5,
+    CrouchMultiplier = 0.5,
+}
 
-local StartTime = os.clock()
+Tranform = Silk.Component("Transform", Tranform)
+Health = Silk.Component("Health", Health)
+Movement = Silk.Component("Movement", Movement)
 
-Silk.Component("Tranform", Tranform)
-Silk.Component("Physics", Physics)
-Silk.Component("Physics1", Physics)
-Silk.Component("Physics2", Physics)
-Silk.Component("Physics3", Physics)
-Silk.Component("Physics4", Physics)
-Silk.Component("Physics5", Physics)
-Silk.Component("Physics6", Physics)
-Silk.Component("Physics7", Physics)
-Silk.Component("Physics8", Physics)
+local World = Silk.World("Main-World")
 
-print("Created 10 Components In: ", os.clock() - StartTime)
+local Tree = World:Entity(Tranform)
+local Chest = World:Entity(Tranform, Health)
+local Chicken = World:Entity(Tranform, Health, Movement)
 
-local StartTime2 = os.clock()
-
-debug.setmemorycategory("$ World")
-
-local World = Silk.World("Test-World")
-
-print("Created World In: ", os.clock() - StartTime2)
-
-debug.setmemorycategory("$ Entities")
-
-local StartTime3 = os.clock()
-
-for i = 1, 10000 do
-	local Entity = World:Entity()
-    World:Build(Entity, 
-        "Tranform",
-        "Physics",
-        "Physics1",
-        "Physics2",
-        "Physics3",
-        "Physics4",
-        "Physics5",
-        "Physics6",
-        "Physics7",
-        "Physics8"
-    )
-end
-
-print("Created 10,000 Entities In: ", os.clock() - StartTime3)
-
-print("Benchmark Done In: ", os.clock() - StartTime)
-
-print(World.EntityIdToIndex[1])
-task.wait(10)
-
-local StartTime = os.clock()
-
-for i = 1, 9999 do
-	World:Kill(i)
-end
-
-print(World)
-print("Killed 10,000 Entities In: ", os.clock() - StartTime)
-
-task.wait(5)
-
-World:Kill(10000)
-print(World)
+print("Tree Has Health:", World:Check(Tree, Health))
+print("Tree Has Movement:", World:Check(Tree, Movement))
+print("Tree Has Transform:", World:Check(Tree, Tranform))
+print()
+print("Chest Has Health:", World:Check(Chest, Health))
+print("Chest Has Movement:", World:Check(Chest, Movement))
+print("Chest Has Transform:", World:Check(Chest, Tranform))
+print()
+print("Chicken Has Health:", World:Check(Chicken, Health))
+print("Chicken Has Movement:", World:Check(Chicken, Movement))
+print("Chicken Has Transform:", World:Check(Chicken, Tranform))
