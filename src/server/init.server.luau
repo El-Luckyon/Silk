@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Silk = require(ReplicatedStorage.Shared.Silk.Silk)
 
-export type Tranform = {
+export type Transform = {
     Position : Vector3,
     Rotation : Vector3,
     Rotation2 : Vector3
@@ -20,7 +20,7 @@ export type Movement = {
     CrouchMultiplier : number,
 }
 
-local Tranform : Tranform = {
+local Transform : Transform = {
     Position = Vector3.zero,
     Rotation = Vector3.zero,
     Rotation2 = Vector3.zero,
@@ -39,24 +39,31 @@ local Movement : Movement = {
     CrouchMultiplier = 0.5,
 }
 
-Tranform = Silk.Component("Transform", Tranform)
+
+Transform = Silk.Component("Transform", Transform)
 Health = Silk.Component("Health", Health)
 Movement = Silk.Component("Movement", Movement)
 
 local World = Silk.World("Main-World")
 
-local Tree = World:Entity(Tranform)
-local Chest = World:Entity(Tranform, Health)
-local Chicken = World:Entity(Tranform, Health, Movement)
+local Tree = World:Entity(Transform)
+local Tree2 = World:Entity(Transform)
+
+local Chest = World:Entity(Transform, Health)
+local Chest2 = World:Entity(Transform, Health)
+
+local Chicken = World:Entity(Transform, Health, Movement)
+local Chicken2 = World:Entity(Transform, Health, Movement)
+
 
 print("Tree Has Health:", World:Check(Tree, Health))
 print("Tree Has Movement:", World:Check(Tree, Movement))
-print("Tree Has Transform:", World:Check(Tree, Tranform))
+print("Tree Has Transform:", World:Check(Tree, Transform))
 print()
 print("Chest Has Health:", World:Check(Chest, Health))
 print("Chest Has Movement:", World:Check(Chest, Movement))
-print("Chest Has Transform:", World:Check(Chest, Tranform))
+print("Chest Has Transform:", World:Check(Chest, Transform))
 print()
 print("Chicken Has Health:", World:Check(Chicken, Health))
 print("Chicken Has Movement:", World:Check(Chicken, Movement))
-print("Chicken Has Transform:", World:Check(Chicken, Tranform))
+print("Chicken Has Transform:", World:Check(Chicken, Transform))

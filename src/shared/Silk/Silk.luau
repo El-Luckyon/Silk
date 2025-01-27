@@ -1,12 +1,29 @@
+--!strict
 --!native
 --!optimize 2
---!strict
-local Components = {}
+
+export type Component<Type> = {
+    Data : Type,
+    MaskLevel : number,
+}
+
+export type World = {
+    Id : string,
+    Entity : (World, ...any) -> number,
+    LastEntityId : number,
+    Entities : {number : {number}},
+    Check : (World, number, number) -> boolean,
+}
+
+local Components : {[number] : Component<any>} = {}
+local ComponentIdFromName : {[string] : number} = {}
 local LastExponent = 0
+local MaskLevel = 1
 local Worlds = {}
 
 local DebugMode = true
 
+--//Utils
 local function DebugInfo(...)
     if DebugMode then
         print("[SILK][DEBUG][INFO]", ...)
@@ -19,55 +36,84 @@ local function DebugWarn(...)
     end
 end
 
-local function CreateComponentMask(ComponentIds : {number})
-    local Mask = 0
-    for i, Id in ComponentIds do
-        Mask = bit32.bor(Mask, Id)
+--//Components
+local function FindComponent(Name : string) : (Component<any>?, number?)
+    local Id = ComponentIdFromName[Name]
+    if not Id then return end
+    return Components[Id], Id
+end
+
+local function GetMaskFromMaskArray(MaskArray : {number}, ComponentId : number) : number
+    return MaskArray[Components[ComponentId].MaskLevel]
+end
+
+local function CreateComponent<Type>(Name : string, Data : Type) : number
+    local Component, ComponentId = FindComponent(Name)
+    if Component then
+        return ComponentId :: number
     end
-    return Mask
+    
+    LastExponent += 1
+    if LastExponent > 31 then
+        LastExponent = 0
+        MaskLevel += 1
+    end
+
+    local NewComponentId = 2 ^ LastExponent
+    Components[NewComponentId] = {Data = Data, MaskLevel = MaskLevel} :: Component<Type>
+    ComponentIdFromName[Name] = NewComponentId
+
+    DebugInfo("Created Component, ComponentId :", NewComponentId, "Name:", Name)
+    return NewComponentId
+end
+
+--//Component Masks
+local function CreateComponentMasks(ComponentIds)
+    local MaskArray = table.create(MaskLevel, 0)
+    for i, Id in ComponentIds do
+        local Component = Components[Id]
+        local MaskIndex = Component.MaskLevel
+        MaskArray[MaskIndex] = bit32.bor(MaskArray[MaskIndex], Id)
+    end
+    return MaskArray
 end
 
 local function MaskHasComponent(Mask : number, ComponentId : number)
     return bit32.band(Mask, ComponentId) > 0
 end
 
-local function GetComponentsFromMask(Mask : number)
-
-end
-
-local function FindComponent(Name : string)
-    return Components[Name]
-end
-
-local function CreateComponent<Type>(Name : string, Data : Type)
-    local Component = FindComponent(Name)
-    if Component then
-        return Component[2]
+--//Archetype
+local function GenerateKey(Masks)
+    local Key = 0
+    for i, Mask in Masks do
+        Key = bit32.bxor(Key, Mask)
     end
-    LastExponent += 1
-    local ComponentId = 2 ^ LastExponent
-    Component = {Data, ComponentId}
-    Components[Name] = Component
-    return ComponentId
+    return Key
+end
+local function AddEntityToArchetype()
+    
 end
 
-local function CreateEntity(World, ...:number)
+local function CreateArchetype(World, Masks : {number})
+    print("Archetype Key:", GenerateKey(Masks))
+end
+
+
+--//Entity
+local function CreateEntity(World : World, ...:number)
     World.LastEntityId += 1
     local LastEntityId = World.LastEntityId
     local ComponentIds = {...}
-    local ComponentMask = CreateComponentMask(ComponentIds)
-    World.Entities[LastEntityId] = ComponentMask
+    local ComponentMasks = CreateComponentMasks(ComponentIds)
+    World.Entities[LastEntityId] = ComponentMasks
     DebugInfo("Created Entitiy, World :", World.Id, "EntityId:", LastEntityId)
+    CreateArchetype(World, ComponentMasks)
     return LastEntityId
 end
 
-local function EntityHasComponent(World, EntityId : number, ComponentId : number)
-    local ComponentMask = World.Entities[EntityId]
+local function EntityHasComponent(World, EntityId : number, ComponentId : number) : boolean
+    local ComponentMask = GetMaskFromMaskArray(World.Entities[EntityId], ComponentId)
     return MaskHasComponent(ComponentMask, ComponentId)
-end
-
-local function  CreateSystem()
-    
 end
 
 local function CreateWorld(WorldId)
@@ -79,16 +125,18 @@ local function CreateWorld(WorldId)
         LastEntityId = 0,
         Entity = CreateEntity,
         Entities = {},
+        Archetypes = {},
         Check = EntityHasComponent,
         Id = WorldId,
-    }  
+    }
     World[WorldId] = World
-    return World
+    return World :: World
 end
 
 local Silk = {}
 
 Silk.World = CreateWorld
 Silk.Component = CreateComponent
+Silk.DebugInfo = DebugInfo
 
 return Silk
